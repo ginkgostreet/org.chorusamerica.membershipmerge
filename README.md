@@ -1,44 +1,41 @@
-# org.chorusamerica.membershipmerge
+# Membership Merge
 
-![Screenshot](/images/screenshot.png)
+Membership Merge (org.chorusamerica.membershipmerge) is an extension for
+[CiviCRM](https://civicrm.org) which provides an API for merging membership
+history. The audience for this extension is site administrators.
 
-(*FIXME: In one or two paragraphs, describe what the extension does and why one would download it. *)
+The need for this extension arose from years of an unorthodox approach to
+modeling memberships, where each real-world renewal resulted in the creation of
+a new membership record rather than an update to the existing one. As a result
+of this approach, staff were unable to use reports and scheduled reminders with
+confidence (e.g., searching for members with a recurring membership would return
+members who had a recurring membership in the past but whose current membership
+is not recurring).
 
-The extension is licensed under [AGPL-3.0](LICENSE.txt).
+## Installation
+
+This extension has not yet been published for in-app installation. [General
+extension installation instructions](https://docs.civicrm.org/sysadmin/en/latest/customize/extensions/#installing-a-new-extension)
+are available in the CiviCRM System Administrator Guide.
 
 ## Requirements
 
 * PHP v5.4+
-* CiviCRM (*FIXME: Version number*)
-
-## Installation (Web UI)
-
-This extension has not yet been published for installation via the web UI.
-
-## Installation (CLI, Zip)
-
-Sysadmins and developers may download the `.zip` file for this extension and
-install it with the command-line tool [cv](https://github.com/civicrm/cv).
-
-```bash
-cd <extension-dir>
-cv dl org.chorusamerica.membershipmerge@https://github.com/FIXME/org.chorusamerica.membershipmerge/archive/master.zip
-```
-
-## Installation (CLI, Git)
-
-Sysadmins and developers may clone the [Git](https://en.wikipedia.org/wiki/Git) repo for this extension and
-install it with the command-line tool [cv](https://github.com/civicrm/cv).
-
-```bash
-git clone https://github.com/FIXME/org.chorusamerica.membershipmerge.git
-cv en membershipmerge
-```
+* CiviCRM v4.7+
 
 ## Usage
 
-(* FIXME: Where would a new user navigate to get started? What changes would they see? *)
+See api.membership.merge in the [API
+Explorer](https://docs.civicrm.org/dev/en/latest/api/#api-explorer).
+
+## Technical Details
+
+TODO: Describe how merges are performed.
 
 ## Known Issues
 
-(* FIXME *)
+TODO
+
+## License
+
+[AGPL-3.0](https://github.com/ginkgostreet/org.chorusamerica.membershipmerge/blob/master/LICENSE.txt)
