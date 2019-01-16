@@ -10,7 +10,10 @@ use CRM_Membershipmerge_ExtensionUtil as E;
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
  */
 function _civicrm_api3_membership_Merge_spec(&$spec) {
-  $spec['magicword']['api.required'] = 1;
+  $spec['contact_id'] = civicrm_api3('Membership', 'getfield', [
+    'action' => 'create',
+    'name' => 'contact_id',
+  ])['values'];
 }
 
 /**
