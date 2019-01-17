@@ -10,6 +10,10 @@ $loader->add('CRM_', __DIR__);
 $loader->add('Civi\\', __DIR__);
 $loader->add('api_', __DIR__);
 $loader->add('api\\', __DIR__);
+
+// Allow non-namespaced classes (e.g., TestDataProvider) to be autoloaded from this directory
+$loader->add(NULL, __DIR__);
+
 $loader->register();
 
 /**
