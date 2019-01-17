@@ -1,13 +1,14 @@
 <?php
 
 use Civi\Test\HeadlessInterface;
+use Civi\Test\TransactionalInterface;
 
 /**
  * Tests expectations wrt api.membership.merge's result.
  *
  * @group headless
  */
-class api_v3_Membership_MergeResultTest extends \PHPUnit_Framework_TestCase implements HeadlessInterface {
+class api_v3_Membership_MergeResultTest extends \PHPUnit_Framework_TestCase implements HeadlessInterface, TransactionalInterface {
 
   /**
    * @var TestDataProvider
@@ -21,12 +22,16 @@ class api_v3_Membership_MergeResultTest extends \PHPUnit_Framework_TestCase impl
   public function setUpHeadless() {
     return \Civi\Test::headless()
       ->installMe(__DIR__)
-      ->callback(array($this, 'setData'), 'sampleData')
       ->apply();
   }
 
-  public function setData() {
-    $this->data = TestDataProvider::singleton();
+  /**
+   * Called before each test.
+   */
+  public function setUp() {
+    parent::setUp();
+
+    $this->data = new TestDataProvider();
   }
 
   /**
