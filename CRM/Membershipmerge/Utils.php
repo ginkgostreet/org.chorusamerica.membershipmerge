@@ -19,16 +19,30 @@ class CRM_Membershipmerge_Utils {
       'owner_membership_id' => ['IS NULL' => 1],
       'return' => [
         // TODO: add other needed membership fields
+        'contact_id',
         'id',
+        'membership_type_id',
         'membership_type_id.member_of_contact_id',
       ],
     ])['values'];
 
-    return array_reduce($directMemberships, function ($bucket, $item) {
+    $membershipsByOrg = array_reduce($directMemberships, function ($bucket, $item) {
       $orgId = $item['membership_type_id.member_of_contact_id'];
       $bucket[$orgId][] = $item;
       return $bucket;
     }, []);
+
+    $result = [];
+    foreach ($membershipsByOrg as $orgId => $memberships) {
+      try {
+        $result[$orgId] = new CRM_Membershipmerge_Merge($memberships);
+      }
+      catch (CRM_Membershipmerge_Exception_Merge $e) {
+        // It may be okay to do nothing here... or may we should create a log?
+      }
+    }
+
+    return $result;
   }
 
 }

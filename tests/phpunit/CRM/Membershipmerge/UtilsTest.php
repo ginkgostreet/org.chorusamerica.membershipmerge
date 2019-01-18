@@ -59,8 +59,8 @@ class CRM_Membershipmerge_UtilsTest extends \PHPUnit_Framework_TestCase implemen
    */
   public function testSeparationOfMembershipsByOrg() {
     $merges = \CRM_Membershipmerge_Utils::getMerges($this->data->contactIdOrganizationMember);
-    $this->assertArrayHasKey($this->data->contactIdChapterBoston, $merges);
-    $this->assertArrayHasKey($this->data->contactIdChapterChicago, $merges);
+    $this->assertArrayHasKey($this->data->contactIdChapterBoston, $merges, 'Expected there to be a merge for Boston');
+    $this->assertArrayHasKey($this->data->contactIdChapterChicago, $merges, 'Expected there to be a merge for Chicago');
   }
 
   /**
