@@ -7,16 +7,63 @@ class CRM_Membershipmerge_Merge {
 
   /**
    * @var array
+   *
+   */
+  private $mergedMembershipIds = array();
+
+  /**
+   * @var array
+   *   Keyed by membership ID.
    */
   private $memberships = array();
+
+  /**
+   * @var int
+   */
+  private $survivingMembershipId;
 
   /**
    * @param array $memberships
    *   Membership data, in the format of an API result (e.g., $result['values']).
    */
   public function __construct(array $memberships) {
-    $this->memberships = $memberships;
+    // ensure memberships are keyed by ID
+    $this->memberships = array_column($memberships, NULL, 'id');
     $this->validateMemberships();
+  }
+
+  public function doMerge() {
+
+  }
+
+  /**
+   * @return array
+   *   The IDs of the memberships that have been/will be merged.
+   */
+  public function getMergedMembershipIds() {
+    if (empty($this->mergedMembershipIds)) {
+      $membershipIds = array_keys($this->memberships);
+      $survivingId = $this->getSurvivingMembershipId();
+
+      $this->mergedMembershipIds = array_diff($membershipIds, (array) $survivingId);
+    }
+    return $this->mergedMembershipIds;
+  }
+
+  /**
+   * Determines which membership should persist, i.e., the record into which all
+   * of the other passed memberships should be merged.
+   *
+   * @return int
+   */
+  public function getSurvivingMembershipId() {
+    if (!isset($this->survivingMembershipId)) {
+      // get expiry dates keyed by membership ID
+      $expiryDates = array_column($this->memberships, 'end_date', 'id');
+      // get the key (membership ID) of the latest expiry date
+      $this->survivingMembershipId = array_keys($expiryDates, max($expiryDates))[0];
+    }
+    return (int) $this->survivingMembershipId;
   }
 
   /**

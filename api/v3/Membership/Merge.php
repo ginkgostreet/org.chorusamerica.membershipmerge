@@ -34,7 +34,18 @@ function civicrm_api3_membership_Merge($params) {
     throw new \CiviCRM_API3_Exception('Invalid format for contact_id', 'invalid_format', $params, $e);
   }
 
-  $returnValues = array();
+  $returnCollection = array();
+  foreach (CRM_Membershipmerge_Utils::getMerges($contactId) as $orgId => $merge) {
+    $merge->doMerge();
 
-  return civicrm_api3_create_success($returnValues, $params, 'Member', 'Merge');
+    $returnItem = [
+      'deleted_membership_ids' => $merge->getMergedMembershipIds(),
+      'membership_organization_contact_id' => $orgId,
+      'remaining_membership_id' => $merge->getSurvivingMembershipId(),
+    ];
+
+    $returnCollection[] = $returnItem;
+  }
+
+  return civicrm_api3_create_success($returnCollection, $params, 'Membership', 'Merge');
 }

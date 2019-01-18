@@ -20,6 +20,7 @@ class CRM_Membershipmerge_Utils {
       'return' => [
         // TODO: add other needed membership fields
         'contact_id',
+        'end_date',
         'id',
         'membership_type_id',
         'membership_type_id.member_of_contact_id',
