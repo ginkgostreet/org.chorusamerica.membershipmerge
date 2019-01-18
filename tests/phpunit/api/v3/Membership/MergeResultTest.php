@@ -38,7 +38,7 @@ class api_v3_Membership_MergeResultTest extends \PHPUnit_Framework_TestCase impl
    * Tests that the signature of return values matches the expected signature.
    */
   public function testReturnSignature() {
-    $apiResult = civicrm_api3('membership', 'merge', ['contact_id' => $this->data->individualContactId]);
+    $apiResult = civicrm_api3('membership', 'merge', ['contact_id' => $this->data->contactIdOrganizationMember]);
 
     $firstMerge = array_shift($apiResult['values']);
     $this->assertInternalType('int', $firstMerge['membership_organization_contact_id']);
