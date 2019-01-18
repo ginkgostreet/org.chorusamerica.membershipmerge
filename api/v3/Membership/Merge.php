@@ -39,7 +39,7 @@ function civicrm_api3_membership_Merge($params) {
     $merge->doMerge();
 
     $returnItem = [
-      'deleted_membership_ids' => $merge->getMergedMembershipIds(),
+      'deleted_membership_ids' => $merge->getDeletedMembershipIds(),
       'membership_organization_contact_id' => $orgId,
       'remaining_membership_id' => $merge->getSurvivingMembershipId(),
     ];

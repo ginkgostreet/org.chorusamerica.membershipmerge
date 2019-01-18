@@ -9,7 +9,7 @@ class CRM_Membershipmerge_Merge {
    * @var array
    *
    */
-  private $mergedMembershipIds = array();
+  private $deletedMembershipIds = array();
 
   /**
    * @var array
@@ -38,16 +38,16 @@ class CRM_Membershipmerge_Merge {
 
   /**
    * @return array
-   *   The IDs of the memberships that have been/will be merged.
+   *   The IDs of the memberships that have been/will be deleted by the merge.
    */
-  public function getMergedMembershipIds() {
-    if (empty($this->mergedMembershipIds)) {
+  public function getDeletedMembershipIds() {
+    if (empty($this->deletedMembershipIds)) {
       $membershipIds = array_keys($this->memberships);
       $survivingId = $this->getSurvivingMembershipId();
 
-      $this->mergedMembershipIds = array_diff($membershipIds, (array) $survivingId);
+      $this->deletedMembershipIds = array_diff($membershipIds, (array) $survivingId);
     }
-    return $this->mergedMembershipIds;
+    return $this->deletedMembershipIds;
   }
 
   /**
