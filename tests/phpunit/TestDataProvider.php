@@ -178,6 +178,7 @@ class TestDataProvider {
       'membership_type_id' => $membershipTypeId,
     ];
     $membershipId = civicrm_api3('Membership', 'create', $params)['id'];
+    $this->createMembershipContribution($membershipId, $contactId);
 
     if ($confereeContactId) {
       $params['contact_id'] = $confereeContactId;
@@ -185,6 +186,19 @@ class TestDataProvider {
       civicrm_api3('Membership', 'create', $params);
     }
     return $membershipId;
+  }
+
+  /**
+   * @param int $membershipId
+   * @param int $contactId
+   */
+  private function createMembershipContribution($membershipId, $contactId) {
+    civicrm_api3('Contribution', 'create', [
+      'contact_id' => $contactId,
+      'financial_type_id' => 'Member Dues',
+      'total_amount' => 100,
+      'api.MembershipPayment.create' => ['membership_id' => $membershipId, 'contribution_id' => '$value.id'],
+    ]);
   }
 
   /**

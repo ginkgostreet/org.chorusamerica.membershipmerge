@@ -33,7 +33,7 @@ class CRM_Membershipmerge_Merge {
   }
 
   public function doMerge() {
-
+    $this->updatePayments();
   }
 
   /**
@@ -64,6 +64,18 @@ class CRM_Membershipmerge_Merge {
       $this->survivingMembershipId = array_keys($expiryDates, max($expiryDates))[0];
     }
     return (int) $this->survivingMembershipId;
+  }
+
+  /**
+   * Updates any civicrm_membership_payment record which references the ID of a
+   * membership slated for deletion to reference the surviving membership ID.
+   */
+  private function updatePayments() {
+    $query = '
+      UPDATE civicrm_membership_payment
+      SET membership_id = ' . $this->getSurvivingMembershipId() . '
+      WHERE membership_id IN (' . implode(',', $this->getDeletedMembershipIds()) . ')';
+    CRM_Core_DAO::executeQuery($query);
   }
 
   /**

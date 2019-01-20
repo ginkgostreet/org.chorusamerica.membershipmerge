@@ -35,6 +35,41 @@ class api_v3_Membership_MergeResultTest extends \PHPUnit_Framework_TestCase impl
   }
 
   /**
+   * Tests that the membership payment records for deleted memberships have been
+   * updated to reference the surviving membership.
+   */
+  public function testContributionHistoryMerged() {
+    // Assert the initial state, pre-merge
+    $msgPreSurvive = 'Expected one payment for surviving membership pre-merge';
+    $countPreSurvive = civicrm_api3('MembershipPayment', 'get', [
+          'membership_id' => $this->data->membershipIdsIndividual['persist'][0],
+        ])['count'];
+    $this->assertEquals(1, $countPreSurvive, $msgPreSurvive);
+
+    $msgPreDelete = 'Expected one payment per deleted membership pre-merge';
+    $countPreDelete = civicrm_api3('MembershipPayment', 'get', [
+      'membership_id' => ['IN' => $this->data->membershipIdsIndividual['delete']],
+    ])['count'];
+    $this->assertEquals(count($this->data->membershipIdsIndividual['delete']), $countPreDelete, $msgPreDelete);
+
+    // Do the merge
+    civicrm_api3('Membership', 'merge', ['contact_id' => $this->data->contactIdIndividualMember]);
+
+    // Assert the state post-merge
+    $msgPostSurvive = 'Expected one payment per initial membership record post-merge';
+    $countPostSurvive = civicrm_api3('MembershipPayment', 'get', [
+      'membership_id' => $this->data->membershipIdsIndividual['persist'][0],
+    ])['count'];
+    $this->assertEquals($countPreSurvive + $countPreDelete, $countPostSurvive, $msgPostSurvive);
+
+    $msgPostDelete = 'Expected payment records for deleted memberships to have been updated post-merge';
+    $countDeletedPost = civicrm_api3('MembershipPayment', 'get', [
+      'membership_id' => ['IN' => $this->data->membershipIdsIndividual['delete']],
+    ])['count'];
+    $this->assertEquals(0, $countDeletedPost, $msgPostDelete);
+  }
+
+  /**
    * Tests that the signature of return values matches the expected signature.
    */
   public function testReturnSignature() {
