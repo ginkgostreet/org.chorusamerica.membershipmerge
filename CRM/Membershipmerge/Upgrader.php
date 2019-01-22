@@ -6,6 +6,8 @@ use CRM_Membershipmerge_ExtensionUtil as E;
  */
 class CRM_Membershipmerge_Upgrader extends CRM_Membershipmerge_Upgrader_Base {
 
+  use CRM_Membershipmerge_Upgrader_DeletedMembershipIdTrait;
+
   // By convention, functions that look like "function upgrade_NNNN()" are
   // upgrade tasks. They are executed in order (like Drupal's hook_update_N).
 
@@ -17,28 +19,17 @@ class CRM_Membershipmerge_Upgrader extends CRM_Membershipmerge_Upgrader_Base {
   }
 
   /**
-   * Example: Work with entities usually not available during the install step.
-   *
-   * This method can be used for any post-install tasks. For example, if a step
-   * of your installation depends on accessing an entity that is itself
-   * created during the installation (e.g., a setting or a managed entity), do
-   * so here to avoid order of operation problems.
-   *
+   * Add custom field to Membership Merge Activity Type.
+   */
   public function postInstall() {
-    $customFieldId = civicrm_api3('CustomField', 'getvalue', array(
-      'return' => array("id"),
-      'name' => "customFieldCreatedViaManagedHook",
-    ));
-    civicrm_api3('Setting', 'create', array(
-      'myWeirdFieldSetting' => array('id' => $customFieldId, 'weirdness' => 1),
-    ));
+    $this->installDeletedMembershipIdCustomField();
   }
 
   /**
-   * Example: Run an external SQL script when the module is uninstalled.
-   *
+   * Remove custom field set associated with Membership Merge Activity Type.
+   */
   public function uninstall() {
-   $this->executeSqlFile('sql/myuninstall.sql');
+    $this->uninstallMembershipMergeCustomGroup();
   }
 
   /**

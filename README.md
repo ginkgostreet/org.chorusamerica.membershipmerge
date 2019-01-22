@@ -68,6 +68,26 @@ Explorer](https://docs.civicrm.org/dev/en/latest/api/#api-explorer). See also
 
 TODO: Describe how merges are performed.
 
+### Audit Log
+For the purposes of debugging, quality assurance, and reconciling old records
+with the rewritten history, an audit log is provided.
+
+On installation, this extension creates a custom activity type "Membership
+Merge." When a merge is performed, the ID of the surviving membership is stored
+in the Activity's `source_record_id` field (the same field that is referenced
+when other membership events are logged as activities), while the deleted
+membership ID is stored in a custom field "Deleted membership ID."
+
+Using a custom activity rather than an ad hoc database table provides visibility
+to site users and as well as a logging mechanism for ad hoc merges that may
+occur in the future.
+
+To maximize the value of the audit log, it is recommended that site
+administrators take a snapshot of the database prior to performing merges. Since
+memberships will be deleted following the merge, the backup provides the only
+way to reverse a merge or to perform a detailed review of the changes that
+occurred.
+
 ## Testing
 
 A suite of [PHPUnit](https://phpunit.de/) tests exists to ensure consistent
