@@ -111,8 +111,7 @@ class api_v3_Membership_MergeResultTest extends \PHPUnit_Framework_TestCase impl
       $this->assertContains($deletedId, $this->data->membershipIdsOrganization['delete'], $msg2);
     }
     $countDeleted = civicrm_api3('Membership', 'get', ['id' => ['IN' => $boston['deleted_membership_ids']]])['count'];
-    // TODO for CA2-376
-    // $this->assertEquals(0, $countDeleted, 'Expected no deleted memberships in DB');
+    $this->assertEquals(0, $countDeleted, 'Expected no deleted memberships in DB');
   }
 
   /**
@@ -142,8 +141,23 @@ class api_v3_Membership_MergeResultTest extends \PHPUnit_Framework_TestCase impl
       $this->assertContains($deletedId, $this->data->membershipIdsOrganization['delete'], $msg2);
     }
     $countDeleted = civicrm_api3('Membership', 'get', ['id' => ['IN' => $chicago['deleted_membership_ids']]])['count'];
-    // TODO for CA2-376
-    // $this->assertEquals(0, $countDeleted, 'Expected no deleted memberships in DB');
+    $this->assertEquals(0, $countDeleted, 'Expected no deleted memberships in DB');
+  }
+
+  /**
+   * Tests that the appropriate "Membership Merged" audit activities are created.
+   */
+  public function testAuditRecords() {
+    civicrm_api3('Membership', 'merge', ['contact_id' => $this->data->contactIdIndividualMember]);
+
+    $fieldUtil = CRM_Membershipmerge_Utils_CustomField::singleton();
+    $auditRecords = civicrm_api3('Activity', 'get', [
+      'activity_type_id' => 'membership_merge',
+      'source_record_id' => $this->data->membershipIdsIndividual['persist'][0],
+      'target_contact_id' => $this->data->contactIdIndividualMember,
+      $fieldUtil->getApiName('membership_merge', 'deleted_membership_id') => ['IN' => $this->data->membershipIdsIndividual['delete']],
+    ]);
+    $this->assertEquals(count($this->data->membershipIdsIndividual['delete']), $auditRecords['count']);
   }
 
 }

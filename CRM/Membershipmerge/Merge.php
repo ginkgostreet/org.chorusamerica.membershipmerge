@@ -1,9 +1,16 @@
 <?php
 
+use CRM_Membershipmerge_ExtensionUtil as E;
+
 /**
  * Performs membership history merges.
  */
 class CRM_Membershipmerge_Merge {
+
+  /**
+   * @var int
+   */
+  private $contactId = NULL;
 
   /**
    * @var array
@@ -30,10 +37,45 @@ class CRM_Membershipmerge_Merge {
     // ensure memberships are keyed by ID
     $this->memberships = array_column($memberships, NULL, 'id');
     $this->validateMemberships();
+    $this->contactId = (int) array_unique(array_column($this->memberships, 'contact_id'))[0];
+  }
+
+  /**
+   * Deletes memberships that have been merged into the surviving record, and
+   * creates an audit trail in the form of Membership Merge activities.
+   */
+  private function cullMemberships() {
+    $actingContact = CRM_Core_Session::singleton()->getLoggedInContactID();
+    // In cases where the acting contact cannot be determined from the session
+    // (e.g., unit tests, and possibly CLI scripts), fall back to the domain
+    // organization.
+    if (!$actingContact) {
+      $actingContact = civicrm_api3('Domain', 'getvalue', [
+        'current_domain' => 1,
+        'return' => 'contact_id',
+      ]);
+    }
+
+    $fieldUtil = CRM_Membershipmerge_Utils_CustomField::singleton();
+    civicrm_api3('Membership', 'get', [
+      'id' => ['IN' => $this->getDeletedMembershipIds()],
+      'api.Membership.delete' => [],
+      'api.Activity.create' => [
+        'activity_type_id' => 'membership_merge',
+        'source_contact_id' => $actingContact,
+        'source_record_id' => $this->getSurvivingMembershipId(),
+        'subject' => E::ts('Membership record ID %1 was updated', [
+          1 => $this->getSurvivingMembershipId(),
+        ]),
+        'target_id' => $this->contactId,
+        $fieldUtil->getApiName('membership_merge', 'deleted_membership_id') => '$value.id',
+      ],
+    ]);
   }
 
   public function doMerge() {
     $this->updatePayments();
+    $this->cullMemberships();
   }
 
   /**
