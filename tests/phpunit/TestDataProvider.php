@@ -176,14 +176,42 @@ class TestDataProvider {
       'contact_id' => $contactId,
       'join_date' => $joinDate,
       'membership_type_id' => $membershipTypeId,
+      'api.MembershipLog.create' => [
+        $this->prepareMembershipLogParams(1, $joinDate),
+        $this->prepareMembershipLogParams(2, $joinDate, 90),
+        $this->prepareMembershipLogParams(3, $joinDate, 365),
+      ],
     ];
     $membershipId = civicrm_api3('Membership', 'create', $params)['id'];
+
+    // api.Membership.create helpfully creates the first log record for each
+    // membership; unfortunately, it gives it a modified date of NOW, so we'll
+    // delete it to represent a more realistic workflow (where the first log
+    // date matches the join date)
+    $now = new DateTime();
+    $today = $now->format('Ymd');
+
+    // Fantastically, api.MembershipLog.delete is broken, so we'll use the BAO.
+    $membershipLog = new CRM_Member_BAO_MembershipLog();
+    $membershipLog->membership_id = $membershipId;
+    $membershipLog->modified_date = $today;
+    $membershipLog->delete();
+
     $this->createMembershipContribution($membershipId, $contactId);
 
     if ($confereeContactId) {
       $params['contact_id'] = $confereeContactId;
       $params['owner_membership_id'] = $membershipId;
-      civicrm_api3('Membership', 'create', $params);
+      $conferredMembershipId = civicrm_api3('Membership', 'create', $params);
+
+      // api.Membership.create helpfully creates the first log record for each
+      // membership; unfortunately, it gives it a modified date of NOW, so we'll
+      // delete it to represent a more realistic workflow (where the first log
+      // date matches the join date)
+      $conferredMembershipLog = new CRM_Member_BAO_MembershipLog();
+      $conferredMembershipLog->membership_id = $conferredMembershipId;
+      $conferredMembershipLog->modified_date = $today;
+      $conferredMembershipLog->delete();
     }
     return $membershipId;
   }
@@ -234,6 +262,32 @@ class TestDataProvider {
       'contact_type' => 'Organization',
       'organization_name' => $orgName,
     ])['id'];
+  }
+
+  /**
+   * @param int $status
+   *   The status the membership was in at the time the log was created; 1 =>
+   *   New, 2 => Current, 3 => Grace.
+   * @param string $joinDate
+   *   The date the membership started.
+   * @param int $daysAfterJoin
+   *   The number of days after the $joinDate that the log was created.
+   * @return array
+   *   Parameters suitable for chaining api.MembershipLog.create to
+   *   api.Membership.create.
+   */
+  private function prepareMembershipLogParams($status, $joinDate, $daysAfterJoin = 0) {
+    $logDate = new DateTime($joinDate);
+    $logDate->modify("+{$daysAfterJoin} days");
+
+    return [
+      'end_date' => '$value.end_date',
+      'membership_id' => '$value.id',
+      'membership_type_id' => '$value.membership_type_id',
+      'modified_date' => $logDate->format('Ymd'),
+      'start_date' => $joinDate,
+      'status_id' => $status,
+    ];
   }
 
 }

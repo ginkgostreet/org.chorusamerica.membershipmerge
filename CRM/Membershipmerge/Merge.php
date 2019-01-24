@@ -75,6 +75,7 @@ class CRM_Membershipmerge_Merge {
 
   public function doMerge() {
     $this->updatePayments();
+    $this->mergeMembershipLogs();
     $this->cullMemberships();
   }
 
@@ -106,6 +107,15 @@ class CRM_Membershipmerge_Merge {
       $this->survivingMembershipId = array_keys($expiryDates, max($expiryDates))[0];
     }
     return (int) $this->survivingMembershipId;
+  }
+
+  private function mergeMembershipLogs() {
+    $inClause = implode(',', $this->getDeletedMembershipIds());
+    $query = '
+      UPDATE civicrm_membership_log
+      SET membership_id = %1
+      WHERE membership_id IN (' . $inClause . ')';
+    CRM_Core_DAO::executeQuery($query, [1 => [$this->getSurvivingMembershipId(), 'Int']]);
   }
 
   /**

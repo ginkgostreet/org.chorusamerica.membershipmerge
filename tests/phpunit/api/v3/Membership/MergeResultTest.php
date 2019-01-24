@@ -85,6 +85,33 @@ class api_v3_Membership_MergeResultTest extends \PHPUnit_Framework_TestCase impl
   }
 
   /**
+   * Tests that membership logs referencing the IDs of to-be-deleted memberships
+   * are either updated to reference the surviving membership or are themselves
+   * deleted.
+   */
+  public function testMembershipLogMembershipId() {
+    $originalLogs = civicrm_api3('MembershipLog', 'get', [
+      'membership_id' => ['IN' => $this->data->membershipIdsOrganization['delete']],
+      'sequential' => 0,
+    ])['values'];
+    $logIds = array_keys($originalLogs);
+
+    civicrm_api3('Membership', 'merge', ['contact_id' => $this->data->contactIdOrganizationMember]);
+
+    $mergedLogs = civicrm_api3('MembershipLog', 'get', [
+      'id' => ['IN' => $logIds],
+    ])['values'];
+    $membershipIds = array_unique(array_column($mergedLogs, 'membership_id'));
+
+    // Note: These arrays are sorted to ensure the values are in the same order
+    // (i.e., have the same keys), as required for array equality comparisons.
+    $expected = $this->data->membershipIdsOrganization['persist'];
+    sort($expected);
+    sort($membershipIds);
+    $this->assertEquals($expected, $membershipIds, 'Expected membership logs to reference the surviving membership(s) and only the surviving membership(s)');
+  }
+
+  /**
    * Tests, for records which have the same memberships type, that the IDs of
    * the surviving and deleted membership records are correctly reported in the
    * API output and that they exist (or do not, as appropriate) in the database
