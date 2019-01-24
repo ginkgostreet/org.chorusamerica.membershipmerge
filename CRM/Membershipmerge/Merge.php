@@ -14,9 +14,15 @@ class CRM_Membershipmerge_Merge {
 
   /**
    * @var array
-   *
    */
   private $deletedMembershipIds = array();
+
+  /**
+   * @var array
+   *   Membership log records, zero-indexed, sorted by modified date then
+   *   membership ID, both ascending.
+   */
+  private $logs;
 
   /**
    * @var array
@@ -38,6 +44,11 @@ class CRM_Membershipmerge_Merge {
     $this->memberships = array_column($memberships, NULL, 'id');
     $this->validateMemberships();
     $this->contactId = (int) array_unique(array_column($this->memberships, 'contact_id'))[0];
+    $this->logs = civicrm_api3('MembershipLog', 'get', [
+      'membership_id' => ['IN' => array_keys($this->memberships)],
+      'options' => ['sort' => 'modified_date ASC, membership_id ASC'],
+      'sequential' => 1,
+    ])['values'];
   }
 
   /**
@@ -74,6 +85,38 @@ class CRM_Membershipmerge_Merge {
   }
 
   /**
+   * Resolves overlaps in history between memberships, with the newer membership's
+   * history winning out.
+   *
+   * Deletes memerbship log records from the database. Does not modify $this->logs.
+   */
+  private function cullLogs() {
+    $supercededMembershipIds = [];
+    $lastMembershipId = NULL;
+    foreach ($this->logs as $log) {
+      $currentMembershipId = $log['membership_id'];
+
+      // The earliest record should always be preserved.
+      if (!isset($lastMembershipId)) {
+        $lastMembershipId = $currentMembershipId;
+        continue;
+      }
+
+      // A membership ID reappears after having been superceded.
+      if (in_array($currentMembershipId, $supercededMembershipIds)) {
+        $this->deleteMembershipLogById($log['id']);
+        continue;
+      }
+
+      // A membership ID change occurs, introducing an ID for the first time.
+      if ($currentMembershipId !== $lastMembershipId) {
+        $supercededMembershipIds[] = $lastMembershipId;
+        $lastMembershipId = $currentMembershipId;
+      }
+    }
+  }
+
+  /**
    * @param int $id
    *   The ID of the log record to delete.
    */
@@ -85,11 +128,15 @@ class CRM_Membershipmerge_Merge {
   }
 
   /**
-   *
+   * Provides a harness for all the steps involved in performing a merge.
    */
   public function doMerge() {
     $this->updatePayments();
-    $this->mergeMembershipLogs();
+    $this->cullLogs();
+    // Statuses must be updated before the membership IDs because the method
+    // depends on the presence of the original membership IDs in the database.
+    $this->updateLogStatuses();
+    $this->updateLogMembershipIds();
     $this->cullMemberships();
   }
 
@@ -124,52 +171,36 @@ class CRM_Membershipmerge_Merge {
   }
 
   /**
+   * Ensures that only membership logs associated with the original membership
+   * have a status of "New."
    *
+   * Depends on the presence of the original membership IDs in the database.
+   * Modifies the database. Does not modify $this->logs.
    */
-  private function mergeMembershipLogs() {
-    $logs = civicrm_api3('MembershipLog', 'get', [
-      'membership_id' => ['IN' => array_keys($this->memberships)],
-      'options' => ['sort' => 'modified_date ASC, membership_id ASC'],
-      'sequential' => 1,
-    ])['values'];
-
-    $supercededMembershipIds = [];
-    $lastMembershipId = NULL;
-    foreach ($logs as $log) {
-      $currentMembershipId = $log['membership_id'];
-
-      // The earliest record should always be preserved.
-      if (!isset($lastMembershipId)) {
-        $lastMembershipId = $currentMembershipId;
-        continue;
-      }
-
-      // A membership ID reappears after having been superceded.
-      if (in_array($currentMembershipId, $supercededMembershipIds)) {
-        $this->deleteMembershipLogById($log['id']);
-        continue;
-      }
-
-      // A membership ID change occurs, introducing an ID for the first time.
-      if ($currentMembershipId !== $lastMembershipId) {
-        $supercededMembershipIds[] = $lastMembershipId;
-        $lastMembershipId = $currentMembershipId;
-      }
-    }
-
-    // Ensures that only membership logs associated with the original membership
-    // have a status of "New."
-    $originalMembershipId = $logs[0]['membership_id'];
+  private function updateLogStatuses() {
+    $originalMembershipId = $this->logs[0]['membership_id'];
     $subsequentMembershipIds = array_diff(array_keys($this->memberships), (array) $originalMembershipId);
+
+    $newStatusId = civicrm_api3('MembershipStatus', 'getvalue', ['return' => 'id', 'name' => 'New']);
+    $currentStatusId = civicrm_api3('MembershipStatus', 'getvalue', ['return' => 'id', 'name' => 'Current']);
 
     $inClause = implode(',', $subsequentMembershipIds);
     $query = '
       UPDATE civicrm_membership_log
-      SET status_id = 2
-      WHERE status_id = 1
+      SET status_id = %1
+      WHERE status_id = %2
       AND membership_id IN (' . $inClause . ')';
-    CRM_Core_DAO::executeQuery($query);
+    CRM_Core_DAO::executeQuery($query, [
+      1 => [$currentStatusId, 'Int'],
+      2 => [$newStatusId, 'Int'],
+    ]);
+  }
 
+  /**
+   * Sets the membership ID for logs associated with memberships that will be
+   * deleted to that of the surviving membership.
+   */
+  private function updateLogMembershipIds() {
     $inClause = implode(',', $this->getDeletedMembershipIds());
     $query = '
       UPDATE civicrm_membership_log
