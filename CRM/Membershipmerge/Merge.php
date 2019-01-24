@@ -73,6 +73,20 @@ class CRM_Membershipmerge_Merge {
     ]);
   }
 
+  /**
+   * @param int $id
+   *   The ID of the log record to delete.
+   */
+  private function deleteMembershipLogById($id) {
+    // Fantastically, api.MembershipLog.delete is broken, so we'll use the BAO.
+    $membershipLog = new CRM_Member_BAO_MembershipLog();
+    $membershipLog->id = $id;
+    $membershipLog->delete();
+  }
+
+  /**
+   *
+   */
   public function doMerge() {
     $this->updatePayments();
     $this->mergeMembershipLogs();
@@ -109,7 +123,53 @@ class CRM_Membershipmerge_Merge {
     return (int) $this->survivingMembershipId;
   }
 
+  /**
+   *
+   */
   private function mergeMembershipLogs() {
+    $logs = civicrm_api3('MembershipLog', 'get', [
+      'membership_id' => ['IN' => array_keys($this->memberships)],
+      'options' => ['sort' => 'modified_date ASC, membership_id ASC'],
+      'sequential' => 1,
+    ])['values'];
+
+    $supercededMembershipIds = [];
+    $lastMembershipId = NULL;
+    foreach ($logs as $log) {
+      $currentMembershipId = $log['membership_id'];
+
+      // The earliest record should always be preserved.
+      if (!isset($lastMembershipId)) {
+        $lastMembershipId = $currentMembershipId;
+        continue;
+      }
+
+      // A membership ID reappears after having been superceded.
+      if (in_array($currentMembershipId, $supercededMembershipIds)) {
+        $this->deleteMembershipLogById($log['id']);
+        continue;
+      }
+
+      // A membership ID change occurs, introducing an ID for the first time.
+      if ($currentMembershipId !== $lastMembershipId) {
+        $supercededMembershipIds[] = $lastMembershipId;
+        $lastMembershipId = $currentMembershipId;
+      }
+    }
+
+    // Ensures that only membership logs associated with the original membership
+    // have a status of "New."
+    $originalMembershipId = $logs[0]['membership_id'];
+    $subsequentMembershipIds = array_diff(array_keys($this->memberships), (array) $originalMembershipId);
+
+    $inClause = implode(',', $subsequentMembershipIds);
+    $query = '
+      UPDATE civicrm_membership_log
+      SET status_id = 2
+      WHERE status_id = 1
+      AND membership_id IN (' . $inClause . ')';
+    CRM_Core_DAO::executeQuery($query);
+
     $inClause = implode(',', $this->getDeletedMembershipIds());
     $query = '
       UPDATE civicrm_membership_log

@@ -85,6 +85,61 @@ class api_v3_Membership_MergeResultTest extends \PHPUnit_Framework_TestCase impl
   }
 
   /**
+   * Ensures that only membership logs associated with the original membership
+   * can have a status of "New."
+   */
+  public function testMembershipLogOnlyOriginalNew() {
+    civicrm_api3('Membership', 'merge', ['contact_id' => $this->data->contactIdOrganizationMember]);
+
+    $statusId = civicrm_api3('MembershipLog', 'getvalue', [
+      'membership_id' => ['IN' => $this->data->membershipIdsOrganization['persist']],
+      'modified_date' => '2015-01-05',
+      'return' => 'status_id',
+    ]);
+
+    $currentStatusId = 2;
+    $this->assertEquals($currentStatusId, $statusId);
+  }
+
+  /**
+   * Tests that logs from an earlier membership which occur chronologically
+   * after the first log of a later membership are culled.
+   */
+  public function testMembershipLogOverlapsCulled() {
+    // This log, the last record in the contact's first membership, should be
+    // culled because it follows the 2015-01-05 membership event which marks the
+    // beginning of the second membership.
+    $shouldBeCulledLogId = civicrm_api3('MembershipLog', 'getvalue', [
+      'membership_id' => ['IN' => $this->data->membershipIdsOrganization['delete']],
+      'modified_date' => '2015-04-04',
+      'return' => 'id',
+    ]);
+
+    civicrm_api3('Membership', 'merge', ['contact_id' => $this->data->contactIdOrganizationMember]);
+
+    $expectedCnt = 0;
+    $actualCnt = civicrm_api3('MembershipLog', 'getcount', ['id' => $shouldBeCulledLogId]);
+    $this->assertEquals($expectedCnt, $actualCnt);
+  }
+
+  /**
+   * Tests that all logs from the surviving membership persist.
+   */
+  public function testMembershipLogSurviving() {
+    $originalLogs = civicrm_api3('MembershipLog', 'get', [
+      'membership_id' => ['IN' => $this->data->membershipIdsOrganization['persist']],
+      'sequential' => 0,
+    ])['values'];
+    $logIds = array_keys($originalLogs);
+
+    civicrm_api3('Membership', 'merge', ['contact_id' => $this->data->contactIdOrganizationMember]);
+
+    $remainingLogCnt = civicrm_api3('MembershipLog', 'getcount', ['id' => ['IN' => $logIds]]);
+
+    $this->assertEquals(count($logIds), $remainingLogCnt);
+  }
+
+  /**
    * Tests that membership logs referencing the IDs of to-be-deleted memberships
    * are either updated to reference the surviving membership or are themselves
    * deleted.
