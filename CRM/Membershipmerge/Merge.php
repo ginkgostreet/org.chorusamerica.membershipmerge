@@ -31,6 +31,16 @@ class CRM_Membershipmerge_Merge {
   private $memberships = array();
 
   /**
+   * @var string
+   */
+  private $originalJoinDate;
+
+  /**
+   * @var int
+   */
+  private $originalMembershipId;
+
+  /**
    * @var int
    */
   private $survivingMembershipId;
@@ -138,6 +148,9 @@ class CRM_Membershipmerge_Merge {
     $this->updateLogStatuses();
     $this->updateLogMembershipIds();
     $this->cullMemberships();
+    // Surviving membership must be updated after the membership log because the
+    // method depends on log records having been updated in the database.
+    $this->updateSurvivingMembership();
   }
 
   /**
@@ -152,6 +165,29 @@ class CRM_Membershipmerge_Merge {
       $this->deletedMembershipIds = array_diff($membershipIds, (array) $survivingId);
     }
     return $this->deletedMembershipIds;
+  }
+
+  /**
+   * @return string
+   */
+  private function getOriginalJoinDate() {
+    if (!isset($this->originalJoinDate)) {
+      $originalMembershipId = $this->getOriginalMembershipId();
+      $this->originalJoinDate = $this->memberships[$originalMembershipId]['join_date'];
+    }
+    return $this->originalJoinDate;
+  }
+
+  /**
+   * Determines which was the original membership record.
+   *
+   * @return int
+   */
+  private function getOriginalMembershipId() {
+    if (!isset($this->originalMembershipId)) {
+      $this->originalMembershipId = (int) $this->logs[0]['membership_id'];
+    }
+    return $this->originalMembershipId;
   }
 
   /**
@@ -219,6 +255,42 @@ class CRM_Membershipmerge_Merge {
       SET membership_id = ' . $this->getSurvivingMembershipId() . '
       WHERE membership_id IN (' . implode(',', $this->getDeletedMembershipIds()) . ')';
     CRM_Core_DAO::executeQuery($query);
+  }
+
+  /**
+   * Updates properties on the surviving membership record to account for history
+   * that may have been contained in other (duplicate) membership records.
+   *
+   * Depends on the membership log records having been updated in the database.
+   */
+  private function updateSurvivingMembership() {
+    $logs = civicrm_api3('MembershipLog', 'get', [
+      'membership_id' => $this->getSurvivingMembershipId(),
+      'options' => ['sort' => 'modified_date ASC, membership_id ASC'],
+      'sequential' => 1,
+    ])['values'];
+
+    $expiredStatusId = civicrm_api3('MembershipStatus', 'getvalue', ['return' => 'id', 'name' => 'Expired']);
+    // The start date is calculated based the start of the last uninterrupted
+    // membership period. In the case of continuous membership, the first start
+    // date is accurate.
+    $startDate = $logs[0]['start_date'];
+    $lastLogExpired = FALSE;
+    foreach ($logs as $log) {
+      $thisLogExpired = ($log['status_id'] === $expiredStatusId);
+
+      if ($lastLogExpired && !$thisLogExpired) {
+        $startDate = $log['start_date'];
+      }
+
+      $lastLogExpired = $thisLogExpired;
+    }
+
+    civicrm_api3('Membership', 'create', [
+      'id' => $this->getSurvivingMembershipId(),
+      'join_date' => $this->getOriginalJoinDate(),
+      'start_date' => $startDate,
+    ]);
   }
 
   /**

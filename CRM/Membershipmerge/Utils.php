@@ -18,10 +18,10 @@ class CRM_Membershipmerge_Utils {
       'contact_id' => $contactId,
       'owner_membership_id' => ['IS NULL' => 1],
       'return' => [
-        // TODO: add other needed membership fields
         'contact_id',
         'end_date',
         'id',
+        'join_date',
         'membership_type_id',
         'membership_type_id.member_of_contact_id',
       ],

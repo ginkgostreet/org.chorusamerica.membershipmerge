@@ -85,6 +85,40 @@ class api_v3_Membership_MergeResultTest extends \PHPUnit_Framework_TestCase impl
   }
 
   /**
+   * Tests that the "member since" date for the surviving membership matches the
+   * member since value from the earliest log record.
+   */
+  public function testMembershipMemberSince() {
+    civicrm_api3('Membership', 'merge', ['contact_id' => $this->data->contactIdOrganizationMember]);
+
+    $memberSince = civicrm_api3('Membership', 'getvalue', [
+      'contact_id' => $this->data->contactIdOrganizationMember,
+      'membership_type_id' => $this->data->membershipTypeIdBoston,
+      'return' => 'join_date',
+    ]);
+
+    $expected = '2014-04-04';
+    $this->assertEquals($expected, $memberSince);
+  }
+
+  /**
+   * Tests that the start date for the surviving membership identifies the start
+   * of the last uninterrupted membership period.
+   */
+  public function testMembershipStartDate() {
+    civicrm_api3('Membership', 'merge', ['contact_id' => $this->data->contactIdOrganizationMember]);
+
+    $memberSince = civicrm_api3('Membership', 'getvalue', [
+      'contact_id' => $this->data->contactIdOrganizationMember,
+      'membership_type_id' => $this->data->membershipTypeIdBoston,
+      'return' => 'start_date',
+    ]);
+
+    $expected = '2016-06-06';
+    $this->assertEquals($expected, $memberSince);
+  }
+
+  /**
    * Ensures that only membership logs associated with the original membership
    * can have a status of "New."
    */

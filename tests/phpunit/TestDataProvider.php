@@ -135,7 +135,7 @@ class TestDataProvider {
     // is the only membership for this organization, it will simply be ignored
     // because there is nothing to merge.
     $this->createMembership($this->contactIdOrganizationMember, '2018-08-08', $this->membershipTypeIdAtlanta);
-    $this->membershipIdsOrganization['persist'][] = $this->createMembership($this->contactIdOrganizationMember, '2018-08-08', $this->membershipTypeIdBoston, $this->contactIdIndividualMember);
+    $this->membershipIdsOrganization['persist'][] = $this->createMembership($this->contactIdOrganizationMember, '2017-06-01', $this->membershipTypeIdBoston, $this->contactIdIndividualMember);
     $this->membershipIdsOrganization['delete'][] = $this->createMembership($this->contactIdOrganizationMember, '2014-04-04', $this->membershipTypeIdBoston, $this->contactIdIndividualMember);
     $this->membershipIdsOrganization['delete'][] = $this->createMembership($this->contactIdOrganizationMember, '2015-01-05', $this->membershipTypeIdBoston, $this->contactIdIndividualMember);
     $this->membershipIdsOrganization['delete'][] = $this->createMembership($this->contactIdOrganizationMember, '2016-06-06', $this->membershipTypeIdBoston, $this->contactIdIndividualMember);
@@ -180,6 +180,7 @@ class TestDataProvider {
         $this->prepareMembershipLogParams(1, $joinDate),
         $this->prepareMembershipLogParams(2, $joinDate, 90),
         $this->prepareMembershipLogParams(3, $joinDate, 365),
+        $this->prepareMembershipLogParams(4, $joinDate, 367),
       ],
     ];
     $membershipId = civicrm_api3('Membership', 'create', $params)['id'];
@@ -267,7 +268,7 @@ class TestDataProvider {
   /**
    * @param int $status
    *   The status the membership was in at the time the log was created; 1 =>
-   *   New, 2 => Current, 3 => Grace.
+   *   New, 2 => Current, 3 => Grace, 4 => Expired.
    * @param string $joinDate
    *   The date the membership started.
    * @param int $daysAfterJoin
