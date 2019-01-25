@@ -286,10 +286,23 @@ class CRM_Membershipmerge_Merge {
       $lastLogExpired = $thisLogExpired;
     }
 
-    civicrm_api3('Membership', 'create', [
-      'id' => $this->getSurvivingMembershipId(),
-      'join_date' => $this->getOriginalJoinDate(),
-      'start_date' => $startDate,
+    // Why SQL, you ask? When using the API to update these values, all the
+    // conferred membership records are unexpectedly deleted. Working theory is
+    // that this occurs only in a unit testing environment, because the
+    // memberships are created and modified in the same request, and
+    // CRM_BAO_Membership::createRelatedMemberships() has a static caching
+    // mechanism to prevent processing the same contact/membership type
+    // combination more than once. Rather than dig deeper, we circumnavigate
+    // with SQL.
+    $query = '
+      UPDATE civicrm_membership
+      SET join_date = %1,
+        start_date = %2
+      WHERE id = %3';
+    CRM_Core_DAO::executeQuery($query, [
+      1 => [str_replace('-', '', $this->getOriginalJoinDate()), 'Date'],
+      2 => [str_replace('-', '', $startDate), 'Date'],
+      3 => [$this->getSurvivingMembershipId(), 'Int'],
     ]);
   }
 
