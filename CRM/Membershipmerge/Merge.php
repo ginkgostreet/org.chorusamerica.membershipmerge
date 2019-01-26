@@ -8,6 +8,12 @@ use CRM_Membershipmerge_ExtensionUtil as E;
 class CRM_Membershipmerge_Merge {
 
   /**
+   * @var array
+   *   Conferee contact IDs => [Membership IDs conferred to them]
+   */
+  private $confermentMap;
+
+  /**
    * @var int
    */
   private $contactId = NULL;
@@ -147,10 +153,43 @@ class CRM_Membershipmerge_Merge {
     // depends on the presence of the original membership IDs in the database.
     $this->updateLogStatuses();
     $this->updateLogMembershipIds();
+    // Updates to conferred memberships must occur after updates to the log of
+    // the surviving membership but before the deletion of duplicate memberships.
+    // The latter cascades into deletion of memberships conferred by those
+    // duplicates, whose logs we still need.
+    $this->updateConferredMembershipLogs();
     $this->cullMemberships();
     // Surviving membership must be updated after the membership log because the
     // method depends on log records having been updated in the database.
     $this->updateSurvivingMembership();
+  }
+
+  /**
+   * @return array
+   *   Conferee contact IDs => [Membership IDs conferred to them]
+   */
+  private function getConfermentMap() {
+    if (!isset($this->confermentMap)) {
+      $this->confermentMap = [];
+
+      $conferredMemberships = civicrm_api3('Membership', 'get', [
+        'options' => ['limit' => 0],
+        'owner_membership_id' => ['IN' => array_keys($this->memberships)],
+        'return' => ['contact_id', 'id'],
+      ])['values'];
+
+      foreach ($conferredMemberships as $conferredMembership) {
+        $cid = $conferredMembership['contact_id'];
+        $mid = $conferredMembership['id'];
+        if (!array_key_exists($cid, $this->confermentMap)) {
+          $this->confermentMap[$cid] = [];
+        }
+        if (!in_array($mid, $this->confermentMap[$cid])) {
+          $this->confermentMap[$cid][] = $mid;
+        }
+      }
+    }
+    return $this->confermentMap;
   }
 
   /**
@@ -204,6 +243,72 @@ class CRM_Membershipmerge_Merge {
       $this->survivingMembershipId = array_keys($expiryDates, max($expiryDates))[0];
     }
     return (int) $this->survivingMembershipId;
+  }
+
+  /**
+   * Updates the logs of conferred memberships to match those of the conferring
+   * membership, starting from event of conferment.
+   *
+   * Depends on:
+   * - the log of the surviving membership having already been updated in the DB
+   * - the presence of duplicate memberships in the DB so that the conferment
+   *   event can be extracted (deleting duplicates would cause the duplicate
+   *   conferment history to be deleted as well)
+   */
+  private function updateConferredMembershipLogs() {
+    $survivorLogs = civicrm_api3('MembershipLog', 'get', [
+      'membership_id' => $this->getSurvivingMembershipId(),
+      'options' => [
+        'limit' => 0,
+        'sort' => 'modified_date ASC',
+      ],
+    ])['values'];
+
+    foreach ($this->getConfermentMap() as $confereeId => $conferredMembershipIds) {
+      $apiResult = civicrm_api3('Membership', 'get', [
+        'contact_id' => $confereeId,
+        'owner_membership_id' => $this->getSurvivingMembershipId()]
+      );
+      $membershipIdConferredBySurvivor = CRM_Utils_Array::value('id', $apiResult);
+
+      // If the surviving membership doesn't confer membership, then skip this
+      // contact. (Note: this check is probably unnecessary; to the best of
+      // our knowledge, when the relationship that confers membership between
+      // contacts is severed, the conferred membership and logs are immediately
+      // deleted.)
+      if (!$membershipIdConferredBySurvivor) {
+        continue;
+      }
+
+      $confermentEvent = civicrm_api3('MembershipLog', 'get', [
+        'membership_id' => ['IN' => $conferredMembershipIds],
+        'options' => [
+          'limit' => 1,
+          'sort' => 'modified_date ASC, membership_id ASC',
+        ],
+        'sequential' => 1,
+      ])['values'][0];
+
+      $conferredLogs = [$confermentEvent];
+      foreach ($survivorLogs as $survivorLog) {
+        if ($survivorLog['modified_date'] > $confermentEvent['modified_date']) {
+          $conferredLogs[] = $survivorLog;
+        }
+      }
+
+      // Before we write the new log history, let's ensure a clean slate.
+      // (Note: the delete API is broken; this BAO deletes all logs associated
+      // with the membership.)
+      CRM_Member_BAO_MembershipLog::del($membershipIdConferredBySurvivor);
+
+      foreach ($conferredLogs as $log) {
+        // To create copies of the logs in the conferee history, the membership
+        // ID needs to be updated, and the log ID deleted.
+        unset($log['id']);
+        $log['membership_id'] = $membershipIdConferredBySurvivor;
+        civicrm_api3('MembershipLog', 'create', $log);
+      };
+    }
   }
 
   /**

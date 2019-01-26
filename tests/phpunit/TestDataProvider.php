@@ -5,9 +5,11 @@
  *
  * Here's the scenario:
  *
- * Three contacts exist whose memberships we will evaluate: an individual, an
- * organization which confers some of its memberships to said individual, and a
- * second (control) organization with no memberships at all.
+ * Four contacts exist whose memberships we will evaluate: an individual, a
+ * second individual who is a recent addition to an organization with a long
+ * membership history, an organization which confers some of its memberships to
+ * said individuals, and a second (control) organization with no memberships at
+ * all.
  *
  * Additionally, three chapters sell memberships:
  *
@@ -21,7 +23,7 @@
  * - has one associated membership type
  * - has the organization as a member, with duplicate memberships which should
  *   be merged
- * - the organization's memberships are conferred to the individual contact
+ * - the organization's memberships are conferred to the individual contacts
  *
  * Chicago Chapter
  * ===============
@@ -31,6 +33,14 @@
  */
 
 class TestDataProvider {
+
+  /**
+   * @var id
+   *   The ID of a contact who is a recent addition to an organization with a
+   *   long membership history. The contact has conferred membership, but for
+   *   only part of the organization's membership period.
+   */
+  private $contactIdPartiallyConferred;
 
   /**
    * @var int
@@ -64,6 +74,11 @@ class TestDataProvider {
    *   The ID of the organization contact which holds a membership.
    */
   private $contactIdOrganizationMember;
+
+  /**
+   * @var int
+   */
+  private $employmentRelationshipId = 5;
 
   /**
    * @var array
@@ -125,53 +140,80 @@ class TestDataProvider {
     $this->membershipTypeIdChicago = $this->createMembershipType($this->contactIdChapterChicago);
     $this->membershipTypeIdChicagoVips = $this->createMembershipType($this->contactIdChapterChicago, 'chicago_vips');
 
-    // set up contacts
+    // set up (most) contacts
     $this->contactIdNoMembership = $this->createOrganization('Nonmember, LLC');
     $this->contactIdOrganizationMember = $this->createOrganization('Acme Corp');
-    $this->contactIdIndividualMember = $this->createIndividual();
+    $this->contactIdIndividualMember = $this->createIndividual('lifer@acme.corp');
+    $this->contactIdPartiallyConferred = $this->createIndividual('johnny@come.lately');
 
     // set up organization memberships
+
     // The Atlanta membership will be neither deleted nor persisted; since it
     // is the only membership for this organization, it will simply be ignored
     // because there is nothing to merge.
     $this->createMembership($this->contactIdOrganizationMember, '2018-08-08', $this->membershipTypeIdAtlanta);
-    $this->membershipIdsOrganization['persist'][] = $this->createMembership($this->contactIdOrganizationMember, '2017-06-01', $this->membershipTypeIdBoston, $this->contactIdIndividualMember);
-    $this->membershipIdsOrganization['delete'][] = $this->createMembership($this->contactIdOrganizationMember, '2014-04-04', $this->membershipTypeIdBoston, $this->contactIdIndividualMember);
-    $this->membershipIdsOrganization['delete'][] = $this->createMembership($this->contactIdOrganizationMember, '2015-01-05', $this->membershipTypeIdBoston, $this->contactIdIndividualMember);
-    $this->membershipIdsOrganization['delete'][] = $this->createMembership($this->contactIdOrganizationMember, '2016-06-06', $this->membershipTypeIdBoston, $this->contactIdIndividualMember);
-    $this->membershipIdsOrganization['persist'][] = $this->createMembership($this->contactIdOrganizationMember, '2018-08-08', $this->membershipTypeIdChicago);
-    $this->membershipIdsOrganization['delete'][] = $this->createMembership($this->contactIdOrganizationMember, '2017-07-07', $this->membershipTypeIdChicagoVips);
 
-    // set up individual memberships (note the contact has conferred Boston memberships)
-    $this->membershipIdsIndividual['persist'][] = $this->createMembership($this->contactIdIndividualMember, '2018-08-08', $this->membershipTypeIdChicago);
+    // Boston
+    $conferees = [$this->contactIdIndividualMember];
+    $this->membershipIdsOrganization['delete'][] = $this->createMembership($this->contactIdOrganizationMember, '2014-04-04', $this->membershipTypeIdBoston, $conferees);
+    $this->membershipIdsOrganization['delete'][] = $this->createMembership($this->contactIdOrganizationMember, '2015-01-05', $this->membershipTypeIdBoston, $conferees);
+    // Johnny Come Lately joins Acme Corp about two years into the life of their
+    // membership; his membership history should vary from Lifer's accordingly.
+    $conferees[] = $this->contactIdPartiallyConferred;
+    $partiallyConferredMemId = $this->createMembership($this->contactIdOrganizationMember, '2016-06-06', $this->membershipTypeIdBoston, $conferees);
+    $this->membershipIdsOrganization['delete'][] = $partiallyConferredMemId;
+    // Repurpose Johnny Come Lately's join event; make it a conferment event
+    $log = civicrm_api3('MembershipLog', 'getsingle', [
+      'membership_id.contact_id' => $this->contactIdPartiallyConferred,
+      'membership_id.owner_membership_id' => $partiallyConferredMemId,
+      'modified_date' => '20160606',
+    ]);
+    $log['modified_date'] = '20160901';
+    civicrm_api3('MembershipLog', 'create', $log);
+    // End repurposing of join event
+    $this->membershipIdsOrganization['persist'][] = $this->createMembership($this->contactIdOrganizationMember, '2017-06-01', $this->membershipTypeIdBoston, $conferees);
+
+    // Chicago
+    $this->membershipIdsOrganization['delete'][] = $this->createMembership($this->contactIdOrganizationMember, '2017-07-07', $this->membershipTypeIdChicagoVips);
+    $this->membershipIdsOrganization['persist'][] = $this->createMembership($this->contactIdOrganizationMember, '2018-08-08', $this->membershipTypeIdChicago);
+
+    // set up direct individual memberships
     $this->membershipIdsIndividual['delete'][] = $this->createMembership($this->contactIdIndividualMember, '2016-06-06', $this->membershipTypeIdChicago);
+    $this->membershipIdsIndividual['persist'][] = $this->createMembership($this->contactIdIndividualMember, '2018-08-28', $this->membershipTypeIdChicago);
+
   }
 
   /**
+   * @param string $email
    * @return int
    *   Contact ID.
    */
-  private function createIndividual() {
+  private function createIndividual($email) {
     $params = [
       'contact_type' => 'Individual',
-      'first_name' => 'Pat',
-      'last_name' => 'Member',
+      'email' => $email,
     ];
 
     return civicrm_api3('Contact', 'create', $params)['id'];
   }
 
   /**
+   * Creates a membership and sundry ancillary records.
+   *
+   * Note that this method does an important thing that could not be achieved by
+   * using CiviCRM's native membership conferment (i.e., first relating contacts
+   * then creating the memberships): it backfills membership log history.
+   *
    * @param int $contactId
    *   The contact ID of the member.
    * @param string $joinDate
-   * @param id $membershipTypeId
-   * @param id $confereeContactId
-   *   The ID of a contact to whom the created membership should be conferred.
+   * @param int $membershipTypeId
+   * @param array $confereeContactIds
+   *   The IDs of contacts to whom the created membership should be conferred.
    * @return int
    *   The membership ID.
    */
-  private function createMembership($contactId, $joinDate, $membershipTypeId, $confereeContactId = NULL) {
+  private function createMembership($contactId, $joinDate, $membershipTypeId, array $confereeContactIds = []) {
     $params = [
       'contact_id' => $contactId,
       'join_date' => $joinDate,
@@ -200,19 +242,21 @@ class TestDataProvider {
 
     $this->createMembershipContribution($membershipId, $contactId);
 
-    if ($confereeContactId) {
-      $params['contact_id'] = $confereeContactId;
-      $params['owner_membership_id'] = $membershipId;
-      $conferredMembershipId = civicrm_api3('Membership', 'create', $params);
+    if (count($confereeContactIds)) {
+      foreach ($confereeContactIds as $confereeContactId) {
+        $params['contact_id'] = $confereeContactId;
+        $params['owner_membership_id'] = $membershipId;
+        $conferredMembershipId = civicrm_api3('Membership', 'create', $params)['id'];
 
-      // api.Membership.create helpfully creates the first log record for each
-      // membership; unfortunately, it gives it a modified date of NOW, so we'll
-      // delete it to represent a more realistic workflow (where the first log
-      // date matches the join date)
-      $conferredMembershipLog = new CRM_Member_BAO_MembershipLog();
-      $conferredMembershipLog->membership_id = $conferredMembershipId;
-      $conferredMembershipLog->modified_date = $today;
-      $conferredMembershipLog->delete();
+        // api.Membership.create helpfully creates the first log record for each
+        // membership; unfortunately, it gives it a modified date of NOW, so we'll
+        // delete it to represent a more realistic workflow (where the first log
+        // date matches the join date)
+        $conferredMembershipLog = new CRM_Member_BAO_MembershipLog();
+        $conferredMembershipLog->membership_id = $conferredMembershipId;
+        $conferredMembershipLog->modified_date = $today;
+        $conferredMembershipLog->delete();
+      }
     }
     return $membershipId;
   }
@@ -231,7 +275,7 @@ class TestDataProvider {
   }
 
   /**
-   * Creates a membership type associated the passed contact ID.
+   * Creates a membership type associated with the passed contact ID.
    *
    * @param int $memberOrgId
    * @param boolean $name

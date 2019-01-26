@@ -119,6 +119,71 @@ class api_v3_Membership_MergeResultTest extends \PHPUnit_Framework_TestCase impl
   }
 
   /**
+   * Tests that membership logs for contacts who have had conferred membership
+   * for the entire duration of the parent membership match those of the parent,
+   * with the exception of the referenced membership_id and the log ID.
+   */
+  public function testMembershipLogForFullConferees() {
+    civicrm_api3('Membership', 'merge', ['contact_id' => $this->data->contactIdOrganizationMember]);
+
+    $parentMembershipId = civicrm_api3('Membership', 'getvalue', [
+      'contact_id' => $this->data->contactIdOrganizationMember,
+      'membership_type_id' => $this->data->membershipTypeIdBoston,
+      'return' => 'id',
+    ]);
+    $parentLogs = civicrm_api3('MembershipLog', 'get', [
+      'membership_id' => $parentMembershipId,
+      'options' => ['sort' => 'modified_date ASC'],
+      'sequential' => 1,
+    ])['values'];
+    array_walk($parentLogs, function (&$log) {
+      unset($log['id'], $log['membership_id']);
+    });
+
+    $childMembershipId = civicrm_api3('Membership', 'getvalue', [
+      'contact_id' => $this->data->contactIdIndividualMember,
+      'owner_membership_id' => $parentMembershipId,
+      'return' => 'id',
+    ]);
+    $childLogs = civicrm_api3('MembershipLog', 'get', [
+      'membership_id' => $childMembershipId,
+      'sequential' => 1,
+    ])['values'];
+    array_walk($childLogs, function (&$log) {
+      unset($log['id'], $log['membership_id']);
+    });
+
+    $this->assertEquals($parentLogs, $childLogs);
+  }
+
+  /**
+   * Tests that membership logs for contacts who have had conferred membership
+   * for only part of the duration of the parent membership contain:
+   *   - a record of the conferment event
+   *   - all the logs in the parent log following the date of the conferment
+   *   - nothing more
+   */
+  public function testMembershipLogForPartialConferees() {
+    civicrm_api3('Membership', 'merge', ['contact_id' => $this->data->contactIdOrganizationMember]);
+
+    $conferredLogs = civicrm_api3('MembershipLog', 'get', [
+      'membership_id.contact_id' => $this->data->contactIdPartiallyConferred,
+      'membership_id.membership_type_id' => $this->data->membershipTypeIdBoston,
+      'options' => ['sort' => 'modified_date ASC'],
+    ])['values'];
+
+    $this->assertEquals('2016-09-01', array_shift($conferredLogs)['modified_date'], 'Expected first log to be conferment event');
+
+    $this->assertEquals('2016-09-04', array_shift($conferredLogs)['modified_date'], 'Expected second log to match log from deleted membership');
+    $this->assertEquals('2017-06-01', array_shift($conferredLogs)['modified_date'], 'Expected third log to match first log from surviving membership');
+    $this->assertEquals('2017-08-30', array_shift($conferredLogs)['modified_date'], 'Expected fourth log to match second log from surviving membership');
+    $this->assertEquals('2018-06-01', array_shift($conferredLogs)['modified_date'], 'Expected fifth log to match third log from surviving membership');
+    $this->assertEquals('2018-06-03', array_shift($conferredLogs)['modified_date'], 'Expected sixth log to match fourth log from surviving membership');
+
+    $this->assertCount(0, $conferredLogs, 'Expected no additional logs');
+  }
+
+  /**
    * Ensures that only membership logs associated with the original membership
    * can have a status of "New."
    */
@@ -201,7 +266,7 @@ class api_v3_Membership_MergeResultTest extends \PHPUnit_Framework_TestCase impl
   }
 
   /**
-   * Tests, for records which have the same memberships type, that the IDs of
+   * Tests, for records which have the same membership types, that the IDs of
    * the surviving and deleted membership records are correctly reported in the
    * API output and that they exist (or do not, as appropriate) in the database
    * following a merge.
@@ -231,7 +296,7 @@ class api_v3_Membership_MergeResultTest extends \PHPUnit_Framework_TestCase impl
   }
 
   /**
-   * Tests, for records which have different memberships types, that the IDs of
+   * Tests, for records which have different membership types, that the IDs of
    * the surviving and deleted membership records are correctly reported in the
    * API output and that they exist (or do not, as appropriate) in the database
    * following a merge.
