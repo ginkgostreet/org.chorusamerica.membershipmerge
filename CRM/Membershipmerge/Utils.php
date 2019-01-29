@@ -40,7 +40,15 @@ class CRM_Membershipmerge_Utils {
         $result[$orgId] = new CRM_Membershipmerge_Merge($memberships);
       }
       catch (CRM_Membershipmerge_Exception_Merge $e) {
-        // It may be okay to do nothing here... or may we should create a log?
+        // TODO: Should the API return is_error = 1 if an exception occurred?
+        // Should there be *some* other indication in the API result that a
+        // problem was logged? It's possible some successful merging occurred,
+        // since one CRM_Membershipmerge_Merge object is created for each
+        // membership organization, so we would want to report that success as
+        // well...
+        Civi::log()->warning($e->message, [
+          'exception' => $e,
+        ]);
       }
     }
 

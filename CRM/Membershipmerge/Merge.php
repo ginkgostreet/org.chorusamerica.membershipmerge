@@ -437,6 +437,11 @@ class CRM_Membershipmerge_Merge {
       $msg = 'Cannot merge memberships with different contact_id values';
       throw new CRM_Membershipmerge_Exception_Merge($msg, 'invalid_data', $this->memberships);
     }
+
+    if ($this->getSurvivingMembershipId() === 0) {
+      $msg = 'Could not determine surviving membership; probably source data is invalid';
+      throw new CRM_Membershipmerge_Exception_Merge($msg, 'invalid_data', $this->memberships);
+    }
   }
 
 }
