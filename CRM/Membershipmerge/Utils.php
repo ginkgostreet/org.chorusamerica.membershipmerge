@@ -46,7 +46,7 @@ class CRM_Membershipmerge_Utils {
         // since one CRM_Membershipmerge_Merge object is created for each
         // membership organization, so we would want to report that success as
         // well...
-        Civi::log()->warning($e->message, [
+        Civi::log()->warning($e->getMessage(), [
           'exception' => $e,
         ]);
       }
