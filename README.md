@@ -20,13 +20,13 @@ are available in the CiviCRM System Administrator Guide.
 
 ## Requirements
 
-* PHP v5.4+
+* PHP v7.0.0+
 * CiviCRM v4.7+
 
 ## Usage
 
 ```php
-$apiResult = civicrm_api3('Member', 'merge', ['contact_id' => 42]);
+$apiResult = civicrm_api3('Membership', 'merge', ['contact_id' => 42]);
 var_dump($apiResult['values']);
 
 // Example output:
@@ -60,9 +60,36 @@ var_dump($apiResult['values']);
 // }
 ```
 
-See api.membership.merge in the [API
+See `api.Membership.merge` in the [API
 Explorer](https://docs.civicrm.org/dev/en/latest/api/#api-explorer). See also
 [Technical Details](#technical-details) for how merges are performed.
+
+### Helper Script
+
+The extension ships with a helper script (`bin/dedupe-all-memberships.php`)
+which finds every contact with more than one associated membership and passes each
+to `api.Membership.merge`. The helper script depends on [`cv`](http://github.com/civicrm/cv)
+to bootstrap CiviCRM.
+
+Note that in some cases a contact may legitimately be
+associated with more than one membership (see [Technical Details](#technical-details)).
+Attempts to merge which do not succeed are recorded in
+[CiviCRM's log](https://docs.civicrm.org/dev/en/latest/tools/debugging/#viewing-log-files).
+
+If your site does not run the version of PHP required by this extension, you can
+still make use of it by specifying the version of PHP to use for command line
+operations. For example:
+
+```bash
+# Note: your path to PHP may vary
+
+# Step 1: Install the extension (you should be able to do this via the UI
+# without trouble, even if your site's version of PHP is too low)
+/usr/bin/php7.1 `command -v cv` en org.chorusamerica.membershipmerge
+
+# Step 2: Execute the helper script
+/usr/bin/php7.1 /path/to/org.chorusamerica.membershipmerge/bin/dedupe-all-memberships.php
+```
 
 ## Technical Details
 
