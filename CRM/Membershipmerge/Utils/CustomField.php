@@ -55,6 +55,7 @@ class CRM_Membershipmerge_Utils_CustomField {
     if (empty($this->customFieldMetaData[$groupName])) {
       $result = civicrm_api3('CustomField', 'get', array(
         'custom_group_id' => $groupName,
+        'options' => ['limit' => 0],
         'sequential' => 1,
       ));
       // key the results by 'name' for easy retrieval of properties by field name

@@ -62,7 +62,10 @@ class CRM_Membershipmerge_Merge {
     $this->contactId = (int) array_unique(array_column($this->memberships, 'contact_id'))[0];
     $this->logs = civicrm_api3('MembershipLog', 'get', [
       'membership_id' => ['IN' => array_keys($this->memberships)],
-      'options' => ['sort' => 'modified_date ASC, membership_id ASC'],
+      'options' => [
+        'limit' => 0,
+        'sort' => 'modified_date ASC, membership_id ASC',
+      ],
       'sequential' => 1,
     ])['values'];
   }
@@ -86,6 +89,7 @@ class CRM_Membershipmerge_Merge {
     $fieldUtil = CRM_Membershipmerge_Utils_CustomField::singleton();
     civicrm_api3('Membership', 'get', [
       'id' => ['IN' => $this->getDeletedMembershipIds()],
+      'options' => ['limit' => 0],
       'api.Membership.delete' => [],
       'api.Activity.create' => [
         'activity_type_id' => 'membership_merge',

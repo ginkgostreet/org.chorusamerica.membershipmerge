@@ -16,6 +16,7 @@ class CRM_Membershipmerge_Utils {
   static public function getMerges(int $contactId) {
     $directMemberships = civicrm_api3('Membership', 'get', [
       'contact_id' => $contactId,
+      'options' => ['limit' => 0],
       'owner_membership_id' => ['IS NULL' => 1],
       'return' => [
         'contact_id',
