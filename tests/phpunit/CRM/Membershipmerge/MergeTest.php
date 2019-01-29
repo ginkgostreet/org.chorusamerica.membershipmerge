@@ -71,6 +71,31 @@ class CRM_Membershipmerge_MergeTest extends \PHPUnit_Framework_TestCase implemen
   }
 
   /**
+   * Tests that an exception is thrown if no membership end dates are provided
+   * (preventing the selection of a survivor).
+   */
+  public function testNoExpirationDatesThrowsException() {
+    $class = CRM_Membershipmerge_Exception_Merge::class;
+    $msgRegex = '#^Could not determine surviving membership; probably source data is invalid$#';
+    $this->setExpectedExceptionRegExp($class, $msgRegex);
+
+    // If it's not obvious, these parameters are simplified to address our test
+    // case specifically.
+    new CRM_Membershipmerge_Merge([
+      [
+        'contact_id' => 1,
+        'end_date' => NULL,
+        'membership_type_id.member_of_contact_id' => 5,
+      ],
+      [
+        'contact_id' => 1,
+        'end_date' => NULL,
+        'membership_type_id.member_of_contact_id' => 5,
+      ],
+    ]);
+  }
+
+  /**
    * Tests that an exception is thrown if there is nothing to merge (i.e., only
    * one membership).
    */
