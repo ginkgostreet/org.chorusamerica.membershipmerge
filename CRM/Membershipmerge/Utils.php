@@ -25,6 +25,7 @@ class CRM_Membershipmerge_Utils {
         'join_date',
         'membership_type_id',
         'membership_type_id.member_of_contact_id',
+        'source',
       ],
     ])['values'];
 

@@ -102,6 +102,22 @@ class api_v3_Membership_MergeResultTest extends \PHPUnit_Framework_TestCase impl
   }
 
   /**
+   * Tests that the source for the surviving membership matches the source value
+   * from the earliest log record.
+   */
+  public function testMembershipMemberSource() {
+    civicrm_api3('Membership', 'merge', ['contact_id' => $this->data->contactIdIndividualMember]);
+
+    $source = civicrm_api3('Membership', 'getvalue', [
+      'id' => $this->data->membershipIdsIndividual['persist'][0],
+      'return' => 'source',
+    ]);
+
+    $expected = "Chicago World's Fair";
+    $this->assertEquals($expected, $source);
+  }
+
+  /**
    * Tests that the start date for the surviving membership identifies the start
    * of the last uninterrupted membership period.
    */

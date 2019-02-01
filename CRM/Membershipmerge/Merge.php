@@ -47,6 +47,11 @@ class CRM_Membershipmerge_Merge {
   private $originalMembershipId;
 
   /**
+   * @var string
+   */
+  private $originalSource;
+
+  /**
    * @var int
    */
   private $survivingMembershipId;
@@ -234,6 +239,17 @@ class CRM_Membershipmerge_Merge {
   }
 
   /**
+   * @return string
+   */
+  private function getOriginalSource() {
+    if (!isset($this->originalSource)) {
+      $originalMembershipId = $this->getOriginalMembershipId();
+      $this->originalSource = $this->memberships[$originalMembershipId]['source'];
+    }
+    return $this->originalSource;
+  }
+
+  /**
    * Determines which membership should persist, i.e., the record into which all
    * of the other passed memberships should be merged.
    *
@@ -380,7 +396,7 @@ class CRM_Membershipmerge_Merge {
     ])['values'];
 
     $expiredStatusId = civicrm_api3('MembershipStatus', 'getvalue', ['return' => 'id', 'name' => 'Expired']);
-    // The start date is calculated based the start of the last uninterrupted
+    // The start date is calculated based on the start of the last uninterrupted
     // membership period. In the case of continuous membership, the first start
     // date is accurate.
     $startDate = $logs[0]['start_date'];
@@ -406,12 +422,14 @@ class CRM_Membershipmerge_Merge {
     $query = '
       UPDATE civicrm_membership
       SET join_date = %1,
+        source = %4,
         start_date = %2
       WHERE id = %3';
     CRM_Core_DAO::executeQuery($query, [
       1 => [str_replace('-', '', $this->getOriginalJoinDate()), 'Date'],
       2 => [str_replace('-', '', $startDate), 'Date'],
       3 => [$this->getSurvivingMembershipId(), 'Int'],
+      4 => [$this->getOriginalSource(), 'String'],
     ]);
   }
 

@@ -178,7 +178,7 @@ class TestDataProvider {
     $this->membershipIdsOrganization['persist'][] = $this->createMembership($this->contactIdOrganizationMember, '2018-08-08', $this->membershipTypeIdChicago);
 
     // set up direct individual memberships
-    $this->membershipIdsIndividual['delete'][] = $this->createMembership($this->contactIdIndividualMember, '2016-06-06', $this->membershipTypeIdChicago);
+    $this->membershipIdsIndividual['delete'][] = $this->createMembership($this->contactIdIndividualMember, '2016-06-06', $this->membershipTypeIdChicago, [], "Chicago World's Fair");
     $this->membershipIdsIndividual['persist'][] = $this->createMembership($this->contactIdIndividualMember, '2018-08-28', $this->membershipTypeIdChicago);
 
   }
@@ -210,14 +210,16 @@ class TestDataProvider {
    * @param int $membershipTypeId
    * @param array $confereeContactIds
    *   The IDs of contacts to whom the created membership should be conferred.
+   * @param string $source
    * @return int
    *   The membership ID.
    */
-  private function createMembership($contactId, $joinDate, $membershipTypeId, array $confereeContactIds = []) {
+  private function createMembership($contactId, $joinDate, $membershipTypeId, array $confereeContactIds = [], $source = 'default source') {
     $params = [
       'contact_id' => $contactId,
       'join_date' => $joinDate,
       'membership_type_id' => $membershipTypeId,
+      'source' => $source,
       'api.MembershipLog.create' => [
         $this->prepareMembershipLogParams(1, $joinDate),
         $this->prepareMembershipLogParams(2, $joinDate, 90),
