@@ -244,7 +244,7 @@ class CRM_Membershipmerge_Merge {
   private function getOriginalSource() {
     if (!isset($this->originalSource)) {
       $originalMembershipId = $this->getOriginalMembershipId();
-      $this->originalSource = $this->memberships[$originalMembershipId]['source'];
+      $this->originalSource = CRM_Utils_Array::value('source', $this->memberships[$originalMembershipId]);
     }
     return $this->originalSource;
   }
@@ -422,15 +422,19 @@ class CRM_Membershipmerge_Merge {
     $query = '
       UPDATE civicrm_membership
       SET join_date = %1,
-        source = %4,
+        source = ' . (is_null($this->getOriginalSource()) ? 'NULL' : '%4') . ',
         start_date = %2
       WHERE id = %3';
-    CRM_Core_DAO::executeQuery($query, [
+    $boundParams = [
       1 => [str_replace('-', '', $this->getOriginalJoinDate()), 'Date'],
       2 => [str_replace('-', '', $startDate), 'Date'],
       3 => [$this->getSurvivingMembershipId(), 'Int'],
-      4 => [$this->getOriginalSource(), 'String'],
-    ]);
+    ];
+    if (!is_null($this->getOriginalSource())) {
+      $boundParams[4] = [$this->getOriginalSource(), 'String'];
+    }
+
+    CRM_Core_DAO::executeQuery($query, $boundParams);
   }
 
   /**

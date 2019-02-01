@@ -118,6 +118,23 @@ class api_v3_Membership_MergeResultTest extends \PHPUnit_Framework_TestCase impl
   }
 
   /**
+   * Tests that the source for the surviving membership matches the source value
+   * from the earliest log record when the original is NULL.
+   */
+  public function testMembershipMemberSourceNull() {
+    civicrm_api3('Membership', 'merge', ['contact_id' => $this->data->contactIdOrganizationMember]);
+
+    // Fetch via BAO because API handles NULLs poorly.
+    $membership = new CRM_Member_BAO_Membership();
+    $membership->contact_id = $this->data->contactIdOrganizationMember;
+    $membership->membership_type_id = $this->data->membershipTypeIdChicago;
+    $membership->find(TRUE);
+
+    $expected = NULL;
+    $this->assertEquals($expected, $membership->source);
+  }
+
+  /**
    * Tests that the start date for the surviving membership identifies the start
    * of the last uninterrupted membership period.
    */

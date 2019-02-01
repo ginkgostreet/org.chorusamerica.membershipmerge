@@ -174,7 +174,7 @@ class TestDataProvider {
     $this->membershipIdsOrganization['persist'][] = $this->createMembership($this->contactIdOrganizationMember, '2017-06-01', $this->membershipTypeIdBoston, $conferees);
 
     // Chicago
-    $this->membershipIdsOrganization['delete'][] = $this->createMembership($this->contactIdOrganizationMember, '2017-07-07', $this->membershipTypeIdChicagoVips);
+    $this->membershipIdsOrganization['delete'][] = $this->createMembership($this->contactIdOrganizationMember, '2017-07-07', $this->membershipTypeIdChicagoVips, [], NULL);
     $this->membershipIdsOrganization['persist'][] = $this->createMembership($this->contactIdOrganizationMember, '2018-08-08', $this->membershipTypeIdChicago);
 
     // set up direct individual memberships
@@ -219,7 +219,6 @@ class TestDataProvider {
       'contact_id' => $contactId,
       'join_date' => $joinDate,
       'membership_type_id' => $membershipTypeId,
-      'source' => $source,
       'api.MembershipLog.create' => [
         $this->prepareMembershipLogParams(1, $joinDate),
         $this->prepareMembershipLogParams(2, $joinDate, 90),
@@ -227,6 +226,10 @@ class TestDataProvider {
         $this->prepareMembershipLogParams(4, $joinDate, 367),
       ],
     ];
+    if (isset($source)) {
+      $params['source'] = $source;
+    }
+
     $membershipId = civicrm_api3('Membership', 'create', $params)['id'];
 
     // api.Membership.create helpfully creates the first log record for each
