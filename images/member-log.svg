@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="106cm" height="46cm" viewBox="-42 180 2104 906" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <g>
+    <rect style="fill: #ffffff" x="-40.0592" y="181.85" width="2101.52" height="903.682"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="-40.0592" y="181.85" width="2101.52" height="903.682"/>
+  </g>
+  <text font-size="42.3333" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="992.462" y="338.248">
+    <tspan x="992.462" y="338.248">First Membership (merged)</tspan>
+    <tspan x="992.462" y="391.165">Non-overlapping events preserved</tspan>
+  </text>
+  <g>
+    <polygon style="fill: #000000" points="964.03,333.701 930.089,333.701 930.089,316.73 896.148,350.671 930.089,384.612 930.089,367.642 964.03,367.642 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="964.03,333.701 930.089,333.701 930.089,316.73 896.148,350.671 930.089,384.612 930.089,367.642 964.03,367.642 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="964.03,333.701 930.089,333.701 930.089,316.73 896.148,350.671 930.089,384.612 930.089,367.642 964.03,367.642 "/>
+  </g>
+  <g>
+    <rect style="fill: #e5e5e5" x="2.39488" y="245.172" width="849.913" height="211"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="2.39488" y="245.172" width="849.913" height="211"/>
+  </g>
+  <g>
+    <ellipse style="fill: #008000" cx="117.704" cy="350.672" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="117.704" cy="350.672" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="117.704" cy="350.672" rx="39.2444" ry="39.2444"/>
+  </g>
+  <g>
+    <ellipse style="fill: #008000" cx="272.528" cy="350.672" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="272.528" cy="350.672" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="272.528" cy="350.672" rx="39.2444" ry="39.2444"/>
+  </g>
+  <g>
+    <ellipse style="fill: #008000" cx="427.35" cy="350.672" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="427.35" cy="350.672" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="427.35" cy="350.672" rx="39.2444" ry="39.2444"/>
+  </g>
+  <g>
+    <ellipse style="fill: #ff0000" cx="582.174" cy="350.672" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="582.174" cy="350.672" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="582.174" cy="350.672" rx="39.2444" ry="39.2444"/>
+  </g>
+  <g>
+    <ellipse style="fill: #ff0000" cx="736.998" cy="350.672" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="736.998" cy="350.672" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="736.998" cy="350.672" rx="39.2444" ry="39.2444"/>
+  </g>
+  <text font-size="42.3333" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="222.14" y="805.404">
+    <tspan x="222.14" y="805.404">Third Membership (survivor)</tspan>
+    <tspan x="222.14" y="858.321">All events preserved</tspan>
+  </text>
+  <g>
+    <polygon style="fill: #000000" points="881.016,800.241 914.957,800.241 914.957,783.27 948.898,817.211 914.957,851.152 914.957,834.182 881.016,834.182 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="881.016,800.241 914.957,800.241 914.957,783.27 948.898,817.211 914.957,851.152 914.957,834.182 881.016,834.182 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="881.016,800.241 914.957,800.241 914.957,783.27 948.898,817.211 914.957,851.152 914.957,834.182 881.016,834.182 "/>
+  </g>
+  <g>
+    <rect style="fill: #e5e5e5" x="1012.12" y="711.712" width="849.913" height="211"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="1012.12" y="711.712" width="849.913" height="211"/>
+  </g>
+  <g>
+    <ellipse style="fill: #008000" cx="1127.43" cy="817.212" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="1127.43" cy="817.212" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="1127.43" cy="817.212" rx="39.2444" ry="39.2444"/>
+  </g>
+  <g>
+    <ellipse style="fill: #008000" cx="1282.26" cy="817.212" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="1282.26" cy="817.212" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="1282.26" cy="817.212" rx="39.2444" ry="39.2444"/>
+  </g>
+  <g>
+    <ellipse style="fill: #008000" cx="1437.08" cy="817.212" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="1437.08" cy="817.212" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="1437.08" cy="817.212" rx="39.2444" ry="39.2444"/>
+  </g>
+  <g>
+    <ellipse style="fill: #008000" cx="1591.9" cy="817.212" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="1591.9" cy="817.212" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="1591.9" cy="817.212" rx="39.2444" ry="39.2444"/>
+  </g>
+  <g>
+    <ellipse style="fill: #008000" cx="1746.73" cy="817.212" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="1746.73" cy="817.212" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="1746.73" cy="817.212" rx="39.2444" ry="39.2444"/>
+  </g>
+  <text font-size="42.3333" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="1390.28" y="549.2">
+    <tspan x="1390.28" y="549.2">Second Membership (merged)</tspan>
+    <tspan x="1390.28" y="602.117">Events preserved until they</tspan>
+    <tspan x="1390.28" y="655.033">overlap a later membership</tspan>
+  </text>
+  <g>
+    <polygon style="fill: #000000" points="1361.85,571.113 1327.91,571.113 1327.91,554.142 1293.97,588.083 1327.91,622.024 1327.91,605.054 1361.85,605.054 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="1361.85,571.113 1327.91,571.113 1327.91,554.142 1293.97,588.083 1327.91,622.024 1327.91,605.054 1361.85,605.054 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="1361.85,571.113 1327.91,571.113 1327.91,554.142 1293.97,588.083 1327.91,622.024 1327.91,605.054 1361.85,605.054 "/>
+  </g>
+  <g>
+    <rect style="fill: #e5e5e5" x="395.526" y="482.582" width="849.913" height="211"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="395.526" y="482.582" width="849.913" height="211"/>
+  </g>
+  <g>
+    <ellipse style="fill: #008000" cx="510.836" cy="588.082" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="510.836" cy="588.082" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="510.836" cy="588.082" rx="39.2444" ry="39.2444"/>
+  </g>
+  <g>
+    <ellipse style="fill: #008000" cx="665.66" cy="588.082" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="665.66" cy="588.082" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="665.66" cy="588.082" rx="39.2444" ry="39.2444"/>
+  </g>
+  <g>
+    <ellipse style="fill: #008000" cx="820.482" cy="588.082" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="820.482" cy="588.082" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="820.482" cy="588.082" rx="39.2444" ry="39.2444"/>
+  </g>
+  <g>
+    <ellipse style="fill: #008000" cx="975.306" cy="588.082" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="975.306" cy="588.082" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="975.306" cy="588.082" rx="39.2444" ry="39.2444"/>
+  </g>
+  <g>
+    <ellipse style="fill: #ff0000" cx="1130.13" cy="588.082" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="1130.13" cy="588.082" rx="39.2444" ry="39.2444"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="1130.13" cy="588.082" rx="39.2444" ry="39.2444"/>
+  </g>
+</svg>
