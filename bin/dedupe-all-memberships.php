@@ -30,6 +30,8 @@ $query = '
 $membership = CRM_Core_DAO::executeQuery($query);
 
 while ($membership->fetch()) {
+  $params = ['contact_id' => $membership->contact_id];
+  var_dump($params);
   civicrm_api3('Membership', 'merge', ['contact_id' => $membership->contact_id]);
 }
 
