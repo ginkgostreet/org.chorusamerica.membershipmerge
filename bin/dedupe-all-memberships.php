@@ -25,6 +25,7 @@ $query = '
   FROM civicrm_membership
   INNER JOIN civicrm_contact on civicrm_contact.id = civicrm_membership.contact_id
   WHERE is_deleted = 0
+  AND join_date IS NOT NULL AND start_date IS NOT NULL AND end_date IS NOT NULL
   GROUP BY contact_id
   HAVING cnt > 1';
 $membership = CRM_Core_DAO::executeQuery($query);
