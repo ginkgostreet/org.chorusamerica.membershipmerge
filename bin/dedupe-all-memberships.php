@@ -23,6 +23,8 @@ eval(`cv php:boot`);
 $query = '
   SELECT contact_id, COUNT(contact_id) AS cnt
   FROM civicrm_membership
+  INNER JOIN civicrm_contact on civicrm_contact.id = civicrm_membership.contact_id
+  WHERE is_deleted = 0
   GROUP BY contact_id
   HAVING cnt > 1';
 $membership = CRM_Core_DAO::executeQuery($query);
