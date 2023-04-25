@@ -375,11 +375,17 @@ class CRM_Membershipmerge_Merge {
    * membership slated for deletion to reference the surviving membership ID.
    */
   private function updatePayments() {
-    $query = '
-      UPDATE civicrm_membership_payment
-      SET membership_id = ' . $this->getSurvivingMembershipId() . '
-      WHERE membership_id IN (' . implode(',', $this->getDeletedMembershipIds()) . ')';
-    CRM_Core_DAO::executeQuery($query);
+    try {
+      $query = '
+        UPDATE civicrm_membership_payment
+        SET membership_id = ' . $this->getSurvivingMembershipId() . '
+        WHERE membership_id IN (' . implode(',', $this->getDeletedMembershipIds()) . ')';
+      CRM_Core_DAO::executeQuery($query);
+    } catch (Exception $e) {
+      if ($e->getMessage() !== 'DB Error: already exists') {
+        throw $e;
+      }
+    }
   }
 
   /**
